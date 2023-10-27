@@ -28,10 +28,7 @@ void UART_DMA_Init(UART_DMA_QueueStruct *msg, UART_HandleTypeDef *huart)
  */
 void UART_DMA_EnableRxInterrupt(UART_DMA_QueueStruct *msg)
 {
-	if(HAL_UARTEx_ReceiveToIdle_DMA(msg->huart, msg->rx.queue[msg->rx.ptr.index_IN].data, UART_DMA_CHAR_SIZE) != HAL_OK)
-	{
-		msg->rx.uart_dma_rxIntErrorFlag = true;
-	}
+	msg->rx.HAL_Status = HAL_UARTEx_ReceiveToIdle_DMA(msg->huart, msg->rx.queue[msg->rx.ptr.index_IN].data, UART_DMA_CHAR_SIZE);
 }
 
 /*
@@ -40,9 +37,9 @@ void UART_DMA_EnableRxInterrupt(UART_DMA_QueueStruct *msg)
  */
 void UART_DMA_CheckRxInterruptErrorFlag(UART_DMA_QueueStruct *msg)
 {
-	if(msg->rx.uart_dma_rxIntErrorFlag)
+	if(msg->rx.HAL_Status != HAL_OK)
 	{
-		msg->rx.uart_dma_rxIntErrorFlag = false;
+		msg->rx.HAL_Status = HAL_OK;
 		UART_DMA_EnableRxInterrupt(msg);
 	}
 }
