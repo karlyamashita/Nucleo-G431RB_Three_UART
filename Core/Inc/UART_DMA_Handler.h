@@ -16,7 +16,7 @@ typedef struct
 {
 	uint8_t data[UART_DMA_CHAR_SIZE];
 	uint32_t size;
-}UART_DMA_Data;
+}UART_DMA_Data; // this is used in queue structure
 
 typedef struct
 {

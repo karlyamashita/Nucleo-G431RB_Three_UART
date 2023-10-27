@@ -18,21 +18,21 @@ UART_DMA_QueueStruct uart1 =
 {
 	.huart = &huart1,
 	.rx.queueSize = UART_DMA_QUEUE_SIZE,
-	.rx.queueSize = UART_DMA_QUEUE_SIZE
+	.tx.queueSize = UART_DMA_QUEUE_SIZE
 };
 
 UART_DMA_QueueStruct uart2 =
 {
 	.huart = &huart2,
 	.rx.queueSize = UART_DMA_QUEUE_SIZE,
-	.rx.queueSize = UART_DMA_QUEUE_SIZE
+	.tx.queueSize = UART_DMA_QUEUE_SIZE
 };
 
 UART_DMA_QueueStruct uart3 =
 {
 	.huart = &huart3,
 	.rx.queueSize = UART_DMA_QUEUE_SIZE,
-	.rx.queueSize = UART_DMA_QUEUE_SIZE
+	.tx.queueSize = UART_DMA_QUEUE_SIZE
 };
 
 void PollingInit(void)
