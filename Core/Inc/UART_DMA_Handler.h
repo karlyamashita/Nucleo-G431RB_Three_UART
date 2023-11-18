@@ -9,8 +9,8 @@
 #define INC_UART_DMA_HANDLER_H_
 
 
-#define UART_DMA_CHAR_SIZE 192
-#define UART_DMA_QUEUE_SIZE 16
+#define UART_DMA_CHAR_SIZE 128
+#define UART_DMA_QUEUE_SIZE 4
 
 typedef struct
 {

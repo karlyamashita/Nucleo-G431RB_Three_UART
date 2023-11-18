@@ -28,7 +28,7 @@ void UART_DMA_Init(UART_DMA_QueueStruct *msg, UART_HandleTypeDef *huart)
  */
 void UART_DMA_EnableRxInterrupt(UART_DMA_QueueStruct *msg)
 {
-	msg->rx.HAL_Status = HAL_UARTEx_ReceiveToIdle_DMA(msg->huart, msg->rx.queue[msg->rx.ptr.index_IN].data, UART_DMA_CHAR_SIZE);
+	msg->rx.HAL_Status = HAL_UARTEx_ReceiveToIdle_DMA(msg->huart, msg->rx.queue[msg->rx.ptr.index_IN].data, UART_DMA_CHAR_SIZE * 2);
 }
 
 /*
