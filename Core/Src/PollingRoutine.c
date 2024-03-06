@@ -44,7 +44,7 @@ void PollingInit(void)
 	UART_DMA_EnableRxInterrupt(&uart2);
 	UART_DMA_EnableRxInterrupt(&uart3);
 
-	NotifyUserDMA(&uart2, "STM32 ready", true);
+	UART_DMA_NotifyUser(&uart2, "STM32 ready", true);
 
 }
 
@@ -58,18 +58,14 @@ void PollingRoutine(void)
 	UART_Parse_1(&uart1);
 	UART_Parse_2(&uart2);
 	UART_Parse_3(&uart3);
-
-	UART_DMA_SendMessage(&uart1);
-	UART_DMA_SendMessage(&uart2);
-	UART_DMA_SendMessage(&uart3);
 }
 
 void UART_Parse_1(UART_DMA_QueueStruct * msg)
 {
 	if(UART_DMA_MsgRdy(msg))
 	{
-		NotifyUserDMA(&uart2, "UART1_RX Received from UART3_TX > PARSE > Out to UART2_TX > Docklight", true);
-		NotifyUserDMA(&uart2, (char*)msg->rx.msgToParse->data, false);
+		UART_DMA_NotifyUser(&uart2, "UART1_RX Received from UART3_TX > PARSE > Out to UART2_TX > Docklight", true);
+		UART_DMA_NotifyUser(&uart2, (char*)msg->rx.msgToParse->data, false);
 	}
 }
 
@@ -77,8 +73,8 @@ void UART_Parse_2(UART_DMA_QueueStruct * msg) // VCP
 {
 	if(UART_DMA_MsgRdy(msg))
 	{
-		NotifyUserDMA(&uart2, "UART2_RX Received from Docklight > PARSE > Out to UART1_TX >  Wired to UART3_RX", true);
-		NotifyUserDMA(&uart1, (char*)msg->rx.msgToParse->data, false);
+		UART_DMA_NotifyUser(&uart2, "UART2_RX Received from Docklight > PARSE > Out to UART1_TX >  Wired to UART3_RX", true);
+		UART_DMA_NotifyUser(&uart1, (char*)msg->rx.msgToParse->data, false);
 	}
 }
 
@@ -86,8 +82,8 @@ void UART_Parse_3(UART_DMA_QueueStruct * msg)
 {
 	if(UART_DMA_MsgRdy(msg))
 	{
-		NotifyUserDMA(&uart2, "UART3_RX Received from UART1_TX > PARSE > Out UART3_TX > Wired to UART1_RX", true);
-		NotifyUserDMA(&uart3, (char*)msg->rx.msgToParse->data, false);
+		UART_DMA_NotifyUser(&uart2, "UART3_RX Received from UART1_TX > PARSE > Out UART3_TX > Wired to UART1_RX", true);
+		UART_DMA_NotifyUser(&uart3, (char*)msg->rx.msgToParse->data, false);
 	}
 }
 
@@ -118,6 +114,27 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 }
 
+/*
+ * Description:
+ */
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart == uart1.huart)
+	{
+		uart1.tx.txPending = false;
+		UART_DMA_SendMessage(&uart1);
+	}
+	else if(huart == uart2.huart)
+	{
+		uart2.tx.txPending = false;
+		UART_DMA_SendMessage(&uart2);
+	}
+	else if(huart == uart3.huart)
+	{
+		uart3.tx.txPending = false;
+		UART_DMA_SendMessage(&uart3);
+	}
+}
 
 void BlinkGreenLED(void)
 {

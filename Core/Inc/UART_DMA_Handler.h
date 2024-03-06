@@ -8,13 +8,16 @@
 #ifndef INC_UART_DMA_HANDLER_H_
 #define INC_UART_DMA_HANDLER_H_
 
-
-#define UART_DMA_CHAR_SIZE 128
+// USER DEFINES User can adjust these defines to fit their project requirements
+#define UART_DMA_DATA_SIZE 128
 #define UART_DMA_QUEUE_SIZE 4
-
+// END USER DEFINES
+// **************************************************
+// ********* Do not modify code below here **********
+// **************************************************
 typedef struct
 {
-	uint8_t data[UART_DMA_CHAR_SIZE];
+	uint8_t data[UART_DMA_DATA_SIZE];
 	uint32_t size;
 }UART_DMA_Data; // this is used in queue structure
 
@@ -34,6 +37,7 @@ typedef struct
 		UART_DMA_Data queue[UART_DMA_QUEUE_SIZE];
 		RING_BUFF_STRUCT ptr;
 		uint32_t queueSize;
+		bool txPending;
 	}tx;
 }UART_DMA_QueueStruct;
 

@@ -40,7 +40,6 @@ extern "C" {
 
 #include "RingBuffer.h"
 #include "UART_DMA_Handler.h"
-#include "NotifyUserDMA.h"
 #include "PollingRoutine.h"
 #include "TimerCallback.h"
 /* USER CODE END Includes */

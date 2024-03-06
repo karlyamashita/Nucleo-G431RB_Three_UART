@@ -28,7 +28,7 @@ void UART_DMA_Init(UART_DMA_QueueStruct *msg, UART_HandleTypeDef *huart)
  */
 void UART_DMA_EnableRxInterrupt(UART_DMA_QueueStruct *msg)
 {
-	msg->rx.HAL_Status = HAL_UARTEx_ReceiveToIdle_DMA(msg->huart, msg->rx.queue[msg->rx.ptr.index_IN].data, UART_DMA_CHAR_SIZE * 2);
+	msg->rx.HAL_Status = HAL_UARTEx_ReceiveToIdle_DMA(msg->huart, msg->rx.queue[msg->rx.ptr.index_IN].data, UART_DMA_DATA_SIZE * 2);
 }
 
 /*
@@ -77,16 +77,20 @@ void UART_DMA_TX_AddMessageToBuffer(UART_DMA_QueueStruct *msg, uint8_t *str, uin
 }
 
 /*
- * Description: This must be called from a polling routine.
+ * Description: This will be called from UART_DMA_NotifyUser or from HAL_UART_TxCpltCallback
  *
  */
 void UART_DMA_SendMessage(UART_DMA_QueueStruct * msg)
 {
 	if(msg->tx.ptr.cnt_Handle)
 	{
-		if(HAL_UART_Transmit_DMA(msg->huart, msg->tx.queue[msg->tx.ptr.index_OUT].data, msg->tx.queue[msg->tx.ptr.index_OUT].size) == HAL_OK)
+		if(!msg->tx.txPending) // If no message is being sent then send message in queue
 		{
-			RingBuff_Ptr_Output(&msg->tx.ptr, UART_DMA_QUEUE_SIZE);
+			if(HAL_UART_Transmit_DMA(msg->huart, msg->tx.queue[msg->tx.ptr.index_OUT].data, msg->tx.queue[msg->tx.ptr.index_OUT].size) == HAL_OK)
+			{
+				msg->tx.txPending = true;
+				RingBuff_Ptr_Output(&msg->tx.ptr, UART_DMA_QUEUE_SIZE);
+			}
 		}
 	}
 }
@@ -96,7 +100,7 @@ void UART_DMA_SendMessage(UART_DMA_QueueStruct * msg)
 */
 void UART_DMA_NotifyUser(UART_DMA_QueueStruct *msg, char *str, bool lineFeed)
 {
-	uint8_t strMsg[UART_DMA_CHAR_SIZE] = {0};
+	uint8_t strMsg[UART_DMA_DATA_SIZE] = {0};
 
     strcpy((char*)strMsg, str);
     
@@ -106,7 +110,9 @@ void UART_DMA_NotifyUser(UART_DMA_QueueStruct *msg, char *str, bool lineFeed)
     }
 
     msg->tx.queue[msg->tx.ptr.index_IN].size = strlen((char*)strMsg);
-    UART_DMA_TX_AddMessageToBuffer(msg, strMsg, strlen((char*)strMsg));
+    UART_DMA_TX_AddMessageToBuffer(msg, strMsg, strlen((char*)strMsg)); // add message to queue
+
+    UART_DMA_SendMessage(msg); // Try to send message if !msg->tx.txPending
 }
 
 
@@ -115,7 +121,7 @@ void UART_DMA_NotifyUser(UART_DMA_QueueStruct *msg, char *str, bool lineFeed)
  - It is totally up to the user how to send messages to the STM32 and how to parse the messages.
  - User would call UART_CheckForNewMessage(&uartDMA_RXMsg) from a polling routine
 
-void UART_CheckForNewMessage(UART_DMA_RxQueueStruct *msg)
+void UART_CheckForNewMessage(UART_DMA_QueueStruct *msg)
 {
 	if(UART_DMA_MsgRdy(msg))
 	{
@@ -130,6 +136,47 @@ void UART_CheckForNewMessage(UART_DMA_RxQueueStruct *msg)
 		}
 	}
 }
+
+// Here are callbacks that should be placed in your polling routine or interrupt routine.
+ * This is for uart1. If you have more UART instances then test for those.
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+	if(huart == uart1.huart)
+	{
+		RingBuff_Ptr_Input(&uart1.rx.ptr, uart1.rx.queueSize);
+		UART_DMA_EnableRxInterrupt(&uart1);
+	}
+	else if(huart == uart2.huart)
+	{
+		RingBuff_Ptr_Input(&uart2.rx.ptr, uart2.rx.queueSize);
+		UART_DMA_EnableRxInterrupt(&uart2);
+	}
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart == uart1.huart)
+	{
+		uart1.tx.txPending = false;
+		UART_DMA_SendMessage(&uart1);
+	}
+	else if(huart == uart2.huart)
+	{
+		uart2.tx.txPending = false;
+		UART_DMA_SendMessage(&uart2);
+	}
+}
+
+// Be sure to initialize UART instance in polling routine
+ *
+UART_DMA_QueueStruct uart1 =
+{
+	.huart = &hlpuart1,
+	.rx.queueSize = UART_DMA_QUEUE_SIZE,
+	.tx.queueSize = UART_DMA_QUEUE_SIZE
+};
+
 
  */
 
