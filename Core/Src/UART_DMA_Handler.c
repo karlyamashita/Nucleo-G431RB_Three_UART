@@ -28,7 +28,7 @@ void UART_DMA_Init(UART_DMA_QueueStruct *msg, UART_HandleTypeDef *huart)
  */
 void UART_DMA_EnableRxInterrupt(UART_DMA_QueueStruct *msg)
 {
-	msg->rx.HAL_Status = HAL_UARTEx_ReceiveToIdle_DMA(msg->huart, msg->rx.queue[msg->rx.ptr.index_IN].data, UART_DMA_DATA_SIZE * 2);
+	msg->rx.hal_status = HAL_UARTEx_ReceiveToIdle_DMA(msg->huart, msg->rx.queue[msg->rx.ptr.index_IN].data, UART_DMA_DATA_SIZE * 2);
 }
 
 /*
@@ -37,9 +37,9 @@ void UART_DMA_EnableRxInterrupt(UART_DMA_QueueStruct *msg)
  */
 void UART_DMA_CheckRxInterruptErrorFlag(UART_DMA_QueueStruct *msg)
 {
-	if(msg->rx.HAL_Status != HAL_OK)
+	if(msg->rx.hal_status != HAL_OK)
 	{
-		msg->rx.HAL_Status = HAL_OK;
+		msg->rx.hal_status = HAL_OK;
 		UART_DMA_EnableRxInterrupt(msg);
 	}
 }
@@ -63,16 +63,13 @@ int UART_DMA_MsgRdy(UART_DMA_QueueStruct *msg)
 /*
 * Description: Add message to TX buffer
 */
-void UART_DMA_TX_AddMessageToBuffer(UART_DMA_QueueStruct *msg, uint8_t *str, uint32_t size)
+void UART_DMA_TX_AddMessageToBuffer(UART_DMA_QueueStruct *msg, uint8_t *data, uint32_t size)
 {
-    uint8_t i = 0;
-    uint8_t *pData = (uint8_t*)str;
+	UART_DMA_Data *ptr = &msg->tx.queue[msg->tx.ptr.index_IN];
 
-    for(i = 0; i < size; i++)
-    {
-    	msg->tx.queue[msg->tx.ptr.index_IN].data[i] = *pData++;
-    }
-    msg->tx.queue[msg->tx.ptr.index_IN].size = size;
+	memcpy(ptr->data, data, size);
+	ptr->size = size;
+
     RingBuff_Ptr_Input(&msg->tx.ptr, UART_DMA_QUEUE_SIZE);
 }
 
@@ -98,7 +95,7 @@ void UART_DMA_SendMessage(UART_DMA_QueueStruct * msg)
 /*
 * Description: Add string to TX structure
 */
-void UART_DMA_NotifyUser(UART_DMA_QueueStruct *msg, char *str, bool lineFeed)
+void UART_DMA_NotifyUser(UART_DMA_QueueStruct *msg, char *str, uint32_t size, bool lineFeed)
 {
 	uint8_t strMsg[UART_DMA_DATA_SIZE] = {0};
 
@@ -107,10 +104,10 @@ void UART_DMA_NotifyUser(UART_DMA_QueueStruct *msg, char *str, bool lineFeed)
     if(lineFeed == true)
     {
     	strcat((char*)strMsg, "\r\n");
+    	size += 2; // add 2 due to CR and LF
     }
 
-    msg->tx.queue[msg->tx.ptr.index_IN].size = strlen((char*)strMsg);
-    UART_DMA_TX_AddMessageToBuffer(msg, strMsg, strlen((char*)strMsg)); // add message to queue
+    UART_DMA_TX_AddMessageToBuffer(msg, strMsg, size); // add message to queue
 
     UART_DMA_SendMessage(msg); // Try to send message if !msg->tx.txPending
 }

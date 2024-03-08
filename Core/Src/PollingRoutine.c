@@ -44,7 +44,7 @@ void PollingInit(void)
 	UART_DMA_EnableRxInterrupt(&uart2);
 	UART_DMA_EnableRxInterrupt(&uart3);
 
-	UART_DMA_NotifyUser(&uart2, "STM32 ready", true);
+	UART_DMA_NotifyUser(&uart2, "STM32 ready", strlen("STM32 ready"), true);
 
 }
 
@@ -62,28 +62,34 @@ void PollingRoutine(void)
 
 void UART_Parse_1(UART_DMA_QueueStruct * msg)
 {
+	char str[] = "UART1_RX Received from UART3_TX > PARSE > Out to UART2_TX > Docklight";
+
 	if(UART_DMA_MsgRdy(msg))
 	{
-		UART_DMA_NotifyUser(&uart2, "UART1_RX Received from UART3_TX > PARSE > Out to UART2_TX > Docklight", true);
-		UART_DMA_NotifyUser(&uart2, (char*)msg->rx.msgToParse->data, false);
+		UART_DMA_NotifyUser(&uart2, str, strlen(str), true);
+		UART_DMA_NotifyUser(&uart2, (char*)msg->rx.msgToParse->data, msg->rx.msgToParse->size, false);
 	}
 }
 
 void UART_Parse_2(UART_DMA_QueueStruct * msg) // VCP
 {
+	char str[] = "UART2_RX Received from Docklight > PARSE > Out to UART1_TX >  Wired to UART3_RX";
+
 	if(UART_DMA_MsgRdy(msg))
 	{
-		UART_DMA_NotifyUser(&uart2, "UART2_RX Received from Docklight > PARSE > Out to UART1_TX >  Wired to UART3_RX", true);
-		UART_DMA_NotifyUser(&uart1, (char*)msg->rx.msgToParse->data, false);
+		UART_DMA_NotifyUser(&uart2, str, strlen(str), true);
+		UART_DMA_NotifyUser(&uart1, (char*)msg->rx.msgToParse->data, msg->rx.msgToParse->size, false);
 	}
 }
 
 void UART_Parse_3(UART_DMA_QueueStruct * msg)
 {
+	char str[] = "UART3_RX Received from UART1_TX > PARSE > Out UART3_TX > Wired to UART1_RX";
+
 	if(UART_DMA_MsgRdy(msg))
 	{
-		UART_DMA_NotifyUser(&uart2, "UART3_RX Received from UART1_TX > PARSE > Out UART3_TX > Wired to UART1_RX", true);
-		UART_DMA_NotifyUser(&uart3, (char*)msg->rx.msgToParse->data, false);
+		UART_DMA_NotifyUser(&uart2, str, strlen(str), true);
+		UART_DMA_NotifyUser(&uart3, (char*)msg->rx.msgToParse->data, msg->rx.msgToParse->size, false);
 	}
 }
 
