@@ -18,7 +18,7 @@ UART_DMA_QueueStruct uart1 =
 {
 	.huart = &huart1,
 	.rx.queueSize = UART_DMA_QUEUE_SIZE,
-	.tx.queueSize = UART_DMA_QUEUE_SIZE
+	.tx.queueSize = UART_DMA_QUEUE_SIZE,
 };
 
 UART_DMA_QueueStruct uart2 =
@@ -39,6 +39,9 @@ void PollingInit(void)
 {
 	TimerCallbackRegisterOnly(&timerCallback, BlinkGreenLED);
 	TimerCallbackTimerStart(&timerCallback, BlinkGreenLED, 500, TIMER_REPEAT);
+
+	uart1.rx.msgToParse->size = 0;
+
 
 	UART_DMA_EnableRxInterrupt(&uart1);
 	UART_DMA_EnableRxInterrupt(&uart2);
@@ -94,7 +97,7 @@ void UART_Parse_3(UART_DMA_QueueStruct * msg)
 }
 
 /*
- * Description: Increment pointer
+ * Description: Increment pointer and enable interrupt again.
  *
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
@@ -117,11 +120,11 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		RingBuff_Ptr_Input(&uart3.rx.ptr, UART_DMA_QUEUE_SIZE);
 		UART_DMA_EnableRxInterrupt(&uart3);
 	}
-
 }
 
 /*
- * Description:
+ * Description: The HAL driver calls this callback when it finishes transmitting.
+ * 				We clear the txPending flag and call UART_DMA_SendMessage again.
  */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {

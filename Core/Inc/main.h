@@ -39,7 +39,7 @@ extern "C" {
 
 
 #include "RingBuffer.h"
-#include "UART_DMA_Handler.h"
+#include "UART_DMA_Handler_STM32.h"
 #include "PollingRoutine.h"
 #include "TimerCallback.h"
 /* USER CODE END Includes */
