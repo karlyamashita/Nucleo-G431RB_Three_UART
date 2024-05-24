@@ -35,6 +35,7 @@ UART_DMA_QueueStruct uart3 =
 	.tx.queueSize = UART_DMA_QUEUE_SIZE
 };
 
+
 void PollingInit(void)
 {
 	TimerCallbackRegisterOnly(&timerCallback, BlinkGreenLED);
@@ -48,7 +49,6 @@ void PollingInit(void)
 	UART_DMA_EnableRxInterrupt(&uart3);
 
 	UART_DMA_NotifyUser(&uart2, "STM32 ready", strlen("STM32 ready"), true);
-
 }
 
 void PollingRoutine(void)

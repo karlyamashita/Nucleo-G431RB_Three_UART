@@ -26,6 +26,11 @@
 extern "C" {
 #endif
 
+
+
+#define USE_DATA_POINTER
+
+
 /* Includes ------------------------------------------------------------------*/
 #include "stm32g4xx_hal.h"
 
